@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wijntest Simulator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    min-height: 100vh;
+    padding: 2rem;
+  }
+  h1 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 0.3rem;
+    color: #c4a35a;
+  }
+  .subtitle {
+    text-align: center;
+    color: #888;
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+  }
+  .panels {
+    display: flex;
+    gap: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+  }
+  .panel {
+    background: #16213e;
+    border-radius: 12px;
+    padding: 1.5rem;
+    flex: 1;
+    min-width: 320px;
+    border: 1px solid #0f3460;
+  }
+  .panel h2 {
+    color: #c4a35a;
+    font-size: 1.15rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #0f3460;
+    padding-bottom: 0.5rem;
+  }
+  button {
+    background: #c4a35a;
+    color: #1a1a2e;
+    border: none;
+    padding: 0.6rem 1.4rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  button:hover { background: #d4b76a; }
+  button:active { background: #b4953a; }
+  input[type="number"] {
+    background: #0f3460;
+    border: 1px solid #1a4a8a;
+    color: #e0e0e0;
+    padding: 0.5rem 0.7rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    width: 100px;
+    text-align: center;
+  }
+  input[type="number"]:focus { outline: 2px solid #c4a35a; }
+
+  /* Bottles */
+  .bottles {
+    display: flex;
+    justify-content: center;
+    gap: 1.2rem;
+    margin: 1.2rem 0;
+  }
+  .bottle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .bottle-icon {
+    font-size: 2.5rem;
+    transition: transform 0.3s;
+  }
+  .bottle-icon.highlight { transform: scale(1.25); }
+  .bottle-label {
+    font-size: 0.75rem;
+    color: #888;
+  }
+  .bottle-count {
+    font-size: 1.1rem;
+    font-weight: 700;
+    min-height: 1.5em;
+  }
+  .bottle-count.correct { color: #4ecca3; }
+  .bottle-count.wrong { color: #e06c75; }
+
+  /* People grid */
+  .people-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 0.4rem;
+    margin: 1rem 0;
+  }
+  .person {
+    text-align: center;
+    padding: 0.3rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    transition: background 0.3s;
+  }
+  .person .icon { font-size: 1.4rem; }
+  .person.correct { background: rgba(78, 204, 163, 0.2); }
+  .person.wrong { background: rgba(224, 108, 117, 0.15); }
+
+  /* Result */
+  .result-box {
+    text-align: center;
+    padding: 1rem;
+    background: #0f3460;
+    border-radius: 8px;
+    margin-top: 1rem;
+    font-size: 1.1rem;
+  }
+  .result-box .big {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #4ecca3;
+  }
+
+  /* Histogram */
+  .histogram-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .histogram-container {
+    background: #0f3460;
+    border-radius: 8px;
+    padding: 1.2rem;
+    margin-top: 1rem;
+  }
+  .histogram-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 220px;
+    padding-top: 1rem;
+    position: relative;
+  }
+  .bar-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .bar {
+    width: 100%;
+    max-width: 40px;
+    background: #c4a35a;
+    border-radius: 3px 3px 0 0;
+    transition: height 0.4s ease;
+    min-height: 0;
+    position: relative;
+  }
+  .bar:hover { background: #d4b76a; }
+  .bar-value {
+    font-size: 0.7rem;
+    color: #ccc;
+    margin-bottom: 2px;
+    min-height: 1em;
+  }
+  .bar-label {
+    font-size: 0.75rem;
+    color: #888;
+    margin-top: 4px;
+  }
+  .stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #c4a35a;
+  }
+  .stat-label {
+    font-size: 0.75rem;
+    color: #888;
+  }
+  .expected-line {
+    font-size: 0.8rem;
+    color: #4ecca3;
+    text-align: center;
+    margin-top: 0.8rem;
+  }
+</style>
+</head>
+<body>
+
+<h1>Wijntest Simulator</h1>
+<p class="subtitle">5 flessen &mdash; 4 goedkoop, 1 duur &mdash; 16 provers</p>
+
+<div class="panels">
+
+  <!-- Single test panel -->
+  <div class="panel">
+    <h2>Enkele test</h2>
+    <button id="btnSingle" onclick="runSingle()">Test uitvoeren</button>
+
+    <div class="bottles" id="bottles">
+      <div class="bottle">
+        <div class="bottle-icon">&#127863;</div>
+        <div class="bottle-label">Goedkoop 1</div>
+        <div class="bottle-count" id="bc0"></div>
+      </div>
+      <div class="bottle">
+        <div class="bottle-icon">&#127863;</div>
+        <div class="bottle-label">Goedkoop 2</div>
+        <div class="bottle-count" id="bc1"></div>
+      </div>
+      <div class="bottle">
+        <div class="bottle-icon">&#127863;</div>
+        <div class="bottle-label">Goedkoop 3</div>
+        <div class="bottle-count" id="bc2"></div>
+      </div>
+      <div class="bottle">
+        <div class="bottle-icon">&#127863;</div>
+        <div class="bottle-label">Goedkoop 4</div>
+        <div class="bottle-count" id="bc3"></div>
+      </div>
+      <div class="bottle">
+        <div class="bottle-icon" id="expensiveIcon">&#127942;</div>
+        <div class="bottle-label" style="color:#c4a35a;">Duur</div>
+        <div class="bottle-count correct" id="bc4"></div>
+      </div>
+    </div>
+
+    <div class="people-grid" id="peopleGrid"></div>
+
+    <div class="result-box" id="resultBox" style="display:none;">
+      <div class="big" id="resultCount"></div>
+      <div id="resultText"></div>
+    </div>
+  </div>
+
+  <!-- Batch test panel -->
+  <div class="panel">
+    <h2>Serie tests</h2>
+    <div class="histogram-controls">
+      <label>Aantal tests:
+        <input type="number" id="batchCount" value="1000" min="1" max="100000">
+      </label>
+      <button id="btnBatch" onclick="runBatch()">Serie uitvoeren</button>
+    </div>
+
+    <div class="histogram-container" id="histContainer" style="display:none;">
+      <div class="histogram-bars" id="histBars"></div>
+      <div class="stats" id="statsRow"></div>
+      <div class="expected-line" id="expectedLine"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const NUM_WINES = 5;
+const EXPENSIVE = 4; // index of expensive wine
+const NUM_PEOPLE = 16;
+
+// Initialize people grid
+function initPeopleGrid() {
+  const grid = document.getElementById('peopleGrid');
+  grid.innerHTML = '';
+  for (let i = 0; i < NUM_PEOPLE; i++) {
+    const div = document.createElement('div');
+    div.className = 'person';
+    div.innerHTML = `<div class="icon">&#128100;</div><div class="choice" id="p${i}"></div>`;
+    div.id = `person${i}`;
+    grid.appendChild(div);
+  }
+}
+initPeopleGrid();
+
+function simulate() {
+  const choices = [];
+  for (let i = 0; i < NUM_PEOPLE; i++) {
+    choices.push(Math.floor(Math.random() * NUM_WINES));
+  }
+  return choices;
+}
+
+function runSingle() {
+  const choices = simulate();
+  const counts = new Array(NUM_WINES).fill(0);
+  let correct = 0;
+
+  choices.forEach((c, i) => {
+    counts[c]++;
+    const el = document.getElementById(`person${i}`);
+    const choiceLabel = c === EXPENSIVE ? 'Duur' : `G${c + 1}`;
+    document.getElementById(`p${i}`).textContent = choiceLabel;
+    if (c === EXPENSIVE) {
+      el.className = 'person correct';
+      correct++;
+    } else {
+      el.className = 'person wrong';
+    }
+  });
+
+  // Update bottle counts
+  for (let i = 0; i < NUM_WINES; i++) {
+    const el = document.getElementById(`bc${i}`);
+    el.textContent = counts[i] > 0 ? counts[i] : '';
+    if (i === EXPENSIVE) {
+      el.className = 'bottle-count correct';
+    } else {
+      el.className = counts[i] > 0 ? 'bottle-count wrong' : 'bottle-count';
+    }
+  }
+
+  // Highlight expensive bottle
+  document.getElementById('expensiveIcon').className =
+    counts[EXPENSIVE] > 0 ? 'bottle-icon highlight' : 'bottle-icon';
+
+  // Show result
+  const box = document.getElementById('resultBox');
+  box.style.display = 'block';
+  document.getElementById('resultCount').textContent = `${correct} / ${NUM_PEOPLE}`;
+  document.getElementById('resultText').textContent =
+    `${correct} ${correct === 1 ? 'persoon heeft' : 'personen hebben'} de dure wijn gekozen (${(correct / NUM_PEOPLE * 100).toFixed(1)}%)`;
+}
+
+function runBatch() {
+  const n = Math.min(Math.max(parseInt(document.getElementById('batchCount').value) || 1000, 1), 100000);
+  document.getElementById('batchCount').value = n;
+
+  // Distribution: how many times did X people choose the expensive wine
+  const dist = new Array(NUM_PEOPLE + 1).fill(0); // 0..16
+
+  for (let t = 0; t < n; t++) {
+    let correct = 0;
+    for (let i = 0; i < NUM_PEOPLE; i++) {
+      if (Math.floor(Math.random() * NUM_WINES) === EXPENSIVE) correct++;
+    }
+    dist[correct]++;
+  }
+
+  // Stats
+  let totalCorrect = 0;
+  let maxCount = 0;
+  let modeVal = 0;
+  for (let i = 0; i <= NUM_PEOPLE; i++) {
+    totalCorrect += i * dist[i];
+    if (dist[i] > maxCount) { maxCount = dist[i]; modeVal = i; }
+  }
+  const mean = totalCorrect / n;
+  let variance = 0;
+  for (let i = 0; i <= NUM_PEOPLE; i++) {
+    variance += dist[i] * (i - mean) ** 2;
+  }
+  variance /= n;
+  const stddev = Math.sqrt(variance);
+
+  // Render histogram
+  const container = document.getElementById('histContainer');
+  container.style.display = 'block';
+  const barsEl = document.getElementById('histBars');
+  barsEl.innerHTML = '';
+
+  for (let i = 0; i <= NUM_PEOPLE; i++) {
+    const pct = maxCount > 0 ? (dist[i] / maxCount) * 100 : 0;
+    const group = document.createElement('div');
+    group.className = 'bar-group';
+
+    const valEl = document.createElement('div');
+    valEl.className = 'bar-value';
+    valEl.textContent = dist[i] > 0 ? dist[i] : '';
+
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.height = pct + '%';
+    bar.title = `${i} personen: ${dist[i]} keer (${(dist[i] / n * 100).toFixed(2)}%)`;
+
+    const label = document.createElement('div');
+    label.className = 'bar-label';
+    label.textContent = i;
+
+    group.appendChild(valEl);
+    group.appendChild(bar);
+    group.appendChild(label);
+    barsEl.appendChild(group);
+  }
+
+  // Stats row
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat"><div class="stat-value">${n.toLocaleString()}</div><div class="stat-label">Tests</div></div>
+    <div class="stat"><div class="stat-value">${mean.toFixed(2)}</div><div class="stat-label">Gemiddelde</div></div>
+    <div class="stat"><div class="stat-value">${modeVal}</div><div class="stat-label">Modus</div></div>
+    <div class="stat"><div class="stat-value">${stddev.toFixed(2)}</div><div class="stat-label">Std. dev.</div></div>
+  `;
+
+  const expected = NUM_PEOPLE / NUM_WINES;
+  document.getElementById('expectedLine').textContent =
+    `Verwachte waarde (bij puur toeval): ${expected.toFixed(1)} van de ${NUM_PEOPLE} kiezen de dure wijn (${(100 / NUM_WINES).toFixed(0)}% kans per persoon)`;
+}
+</script>
+
+</body>
+</html>
