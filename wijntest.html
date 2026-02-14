@@ -174,6 +174,8 @@
     min-height: 0;
     position: relative;
   }
+  .bar.significant { background: #4ecca3; }
+  .bar.significant:hover { background: #6edcb3; }
   .bar:hover { background: #d4b76a; }
   .bar-value {
     font-size: 0.7rem;
@@ -210,6 +212,42 @@
     color: #4ecca3;
     text-align: center;
     margin-top: 0.8rem;
+  }
+  .significance-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e06c75;
+    z-index: 10;
+  }
+  .significance-label {
+    position: absolute;
+    top: -2px;
+    font-size: 0.7rem;
+    color: #e06c75;
+    white-space: nowrap;
+    font-weight: 600;
+    transform: translateX(-50%);
+  }
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 0.6rem;
+    font-size: 0.75rem;
+    color: #888;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .legend-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
   }
 </style>
 </head>
@@ -385,19 +423,24 @@ function runBatch() {
   const barsEl = document.getElementById('histBars');
   barsEl.innerHTML = '';
 
+  // Calculate significance threshold (p < 0.05, one-tailed binomial test)
+  const p = 1 / NUM_WINES;
+  const sigThreshold = binomialThreshold(NUM_PEOPLE, p, 0.05);
+
   for (let i = 0; i <= NUM_PEOPLE; i++) {
     const pct = maxCount > 0 ? (dist[i] / maxCount) * 100 : 0;
     const group = document.createElement('div');
     group.className = 'bar-group';
+    group.style.position = 'relative';
 
     const valEl = document.createElement('div');
     valEl.className = 'bar-value';
     valEl.textContent = dist[i] > 0 ? dist[i] : '';
 
     const bar = document.createElement('div');
-    bar.className = 'bar';
+    bar.className = i >= sigThreshold ? 'bar significant' : 'bar';
     bar.style.height = pct + '%';
-    bar.title = `${i} personen: ${dist[i]} keer (${(dist[i] / n * 100).toFixed(2)}%)`;
+    bar.title = `${i} personen: ${dist[i]} keer (${(dist[i] / n * 100).toFixed(2)}%)${i >= sigThreshold ? ' — significant!' : ''}`;
 
     const label = document.createElement('div');
     label.className = 'bar-label';
@@ -406,6 +449,20 @@ function runBatch() {
     group.appendChild(valEl);
     group.appendChild(bar);
     group.appendChild(label);
+
+    // Add significance line before the threshold bar
+    if (i === sigThreshold) {
+      const line = document.createElement('div');
+      line.className = 'significance-line';
+      line.style.left = '-2px';
+      const lineLabel = document.createElement('div');
+      lineLabel.className = 'significance-label';
+      lineLabel.style.left = '-2px';
+      lineLabel.textContent = 'p < 0.05';
+      group.appendChild(line);
+      group.appendChild(lineLabel);
+    }
+
     barsEl.appendChild(group);
   }
 
@@ -417,9 +474,50 @@ function runBatch() {
     <div class="stat"><div class="stat-value">${stddev.toFixed(2)}</div><div class="stat-label">Std. dev.</div></div>
   `;
 
+  // Count how many tests were significant
+  let sigCount = 0;
+  for (let i = sigThreshold; i <= NUM_PEOPLE; i++) sigCount += dist[i];
+
   const expected = NUM_PEOPLE / NUM_WINES;
-  document.getElementById('expectedLine').textContent =
-    `Verwachte waarde (bij puur toeval): ${expected.toFixed(1)} van de ${NUM_PEOPLE} kiezen de dure wijn (${(100 / NUM_WINES).toFixed(0)}% kans per persoon)`;
+  document.getElementById('expectedLine').innerHTML =
+    `Verwachte waarde (bij puur toeval): ${expected.toFixed(1)} van de ${NUM_PEOPLE} kiezen de dure wijn (${(100 / NUM_WINES).toFixed(0)}% kans per persoon)<br>` +
+    `<span style="color:#e06c75;">Significantiegrens (p &lt; 0.05): ${sigThreshold}+ personen</span> — ` +
+    `<strong>${sigCount.toLocaleString()}</strong> van ${n.toLocaleString()} tests (${(sigCount / n * 100).toFixed(1)}%) was significant`;
+
+  // Legend
+  let legendEl = document.getElementById('histLegend');
+  if (!legendEl) {
+    legendEl = document.createElement('div');
+    legendEl.id = 'histLegend';
+    legendEl.className = 'legend';
+    container.appendChild(legendEl);
+  }
+  legendEl.innerHTML = `
+    <div class="legend-item"><div class="legend-swatch" style="background:#c4a35a;"></div> Toeval (niet significant)</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#4ecca3;"></div> Significant (p &lt; 0.05)</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#e06c75; width:2px; height:12px;"></div> Significantiegrens</div>
+  `;
+}
+
+// Calculate the smallest k where P(X >= k) < alpha using binomial CDF
+function binomialThreshold(n, p, alpha) {
+  // Compute P(X >= k) = 1 - P(X <= k-1) for increasing k
+  let cumulative = 0;
+  for (let k = 0; k <= n; k++) {
+    cumulative += binomialPMF(n, k, p);
+    if (1 - cumulative < alpha) return k + 1;
+  }
+  return n + 1;
+}
+
+function binomialPMF(n, k, p) {
+  // log-space to avoid overflow
+  let logP = 0;
+  for (let i = 0; i < k; i++) {
+    logP += Math.log(n - i) - Math.log(i + 1);
+  }
+  logP += k * Math.log(p) + (n - k) * Math.log(1 - p);
+  return Math.exp(logP);
 }
 </script>
 
