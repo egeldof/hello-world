@@ -104,7 +104,7 @@
     min-height: 1.5em;
   }
   .bottle-count.correct { color: #4ecca3; }
-  .bottle-count.wrong { color: #e06c75; }
+  .bottle-count.wrong { color: #dd3333; }
 
   /* People grid */
   .people-grid {
@@ -175,17 +175,17 @@
   }
   .cdf-overlay polyline {
     fill: none;
-    stroke: #e06c75;
+    stroke: #dd3333;
     stroke-width: 2.5;
     stroke-linejoin: round;
     stroke-linecap: round;
   }
   .cdf-overlay circle {
-    fill: #e06c75;
+    fill: #dd3333;
   }
   .cdf-axis-label {
     font-size: 0.7rem;
-    color: #e06c75;
+    color: #dd3333;
     position: absolute;
     right: 0;
   }
@@ -199,7 +199,7 @@
     flex-direction: column;
     justify-content: space-between;
     font-size: 0.65rem;
-    color: #e06c75;
+    color: #dd3333;
     text-align: right;
     pointer-events: none;
   }
@@ -220,8 +220,8 @@
     min-height: 0;
     position: relative;
   }
-  .bar.significant { background: #e06c75; }
-  .bar.significant:hover { background: #e88a91; }
+  .bar.significant { background: #dd3333; }
+  .bar.significant:hover { background: #ee5555; }
   .bar:hover { background: #d4b76a; }
   .bar-value {
     font-size: 0.7rem;
@@ -264,14 +264,14 @@
     top: 0;
     bottom: 0;
     width: 2px;
-    background: #e06c75;
+    background: #dd3333;
     z-index: 10;
   }
   .significance-label {
     position: absolute;
     top: -2px;
     font-size: 0.7rem;
-    color: #e06c75;
+    color: #dd3333;
     white-space: nowrap;
     font-weight: 600;
     transform: translateX(-50%);
@@ -296,8 +296,9 @@
     border-radius: 2px;
   }
   .cdf-overlay text {
-    fill: #e06c75;
+    fill: #dd3333;
     font-size: 9px;
+    font-weight: 700;
     font-family: 'Segoe UI', system-ui, sans-serif;
     text-anchor: middle;
   }
@@ -451,6 +452,8 @@ function runSingle() {
     counts[c]++;
     const el = document.getElementById(`person${i}`);
     const choiceLabel = c === EXPENSIVE ? 'Duur' : `G${c + 1}`;
+    const choiceIcon = c === EXPENSIVE ? '\u{1F3C6}' : '\u{1F377}';
+    el.querySelector('.icon').textContent = choiceIcon;
     document.getElementById(`p${i}`).textContent = choiceLabel;
     if (c === EXPENSIVE) {
       el.className = 'person correct';
@@ -578,7 +581,7 @@ function runBatch() {
   const expected = NUM_PEOPLE / NUM_WINES;
   document.getElementById('expectedLine').innerHTML =
     `Verwachte waarde (bij puur toeval): ${expected.toFixed(1)} van de ${NUM_PEOPLE} kiezen de dure wijn (${(100 / NUM_WINES).toFixed(0)}% kans per persoon)<br>` +
-    `<span style="color:#e06c75;">Significantiegrens (p &lt; 0.05): ${sigThreshold}+ personen — ` +
+    `<span style="color:#dd3333;">Significantiegrens (p &lt; 0.05): ${sigThreshold}+ personen — ` +
     `<strong>${sigCount.toLocaleString()}</strong> van ${n.toLocaleString()} tests (${(sigCount / n * 100).toFixed(1)}%) was significant</span>`;
 
   // Legend
@@ -591,9 +594,9 @@ function runBatch() {
   }
   legendEl.innerHTML = `
     <div class="legend-item"><div class="legend-swatch" style="background:#c4a35a;"></div> Toeval (niet significant)</div>
-    <div class="legend-item"><div class="legend-swatch" style="background:#e06c75;"></div> Significant (p &lt; 0.05)</div>
-    <div class="legend-item"><div class="legend-swatch" style="background:#e06c75; width:2px; height:12px;"></div> Significantiegrens</div>
-    <div class="legend-item"><div class="legend-swatch" style="background:#e06c75; height:2px; border-radius:0;"></div> P(X &ge; k) — omgekeerde CDF</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#dd3333;"></div> Significant (p &lt; 0.05)</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#dd3333; width:2px; height:12px;"></div> Significantiegrens</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#dd3333; height:2px; border-radius:0;"></div> P(X &ge; k) — omgekeerde CDF</div>
   `;
 
   // Draw reverse CDF (survival function) overlay
