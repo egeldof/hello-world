@@ -656,7 +656,7 @@ function drawSurvivalCurve(dist, n) {
     // Add value labels at each point
     pointData.forEach((pt, i) => {
       const pctVal = pt.val * 100;
-      if (pctVal < 0.05 && pctVal > 0) return; // skip near-zero clutter
+      if (pctVal < 0.05) return; // skip zero and near-zero clutter
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       text.setAttribute('x', pt.x);
       text.setAttribute('y', pt.y - 8);
