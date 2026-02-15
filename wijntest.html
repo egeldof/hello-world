@@ -23,7 +23,11 @@
     text-align: center;
     color: #888;
     margin-bottom: 2rem;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
   }
   .panels {
     display: flex;
@@ -291,12 +295,59 @@
     height: 12px;
     border-radius: 2px;
   }
+  .cdf-overlay text {
+    fill: #e8a0bf;
+    font-size: 9px;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    text-anchor: middle;
+  }
+
+  /* Mobile: phones */
+  @media (max-width: 600px) {
+    body { padding: 0.8rem; }
+    h1 { font-size: 1.4rem; }
+    .subtitle { font-size: 0.8rem; margin-bottom: 1.2rem; }
+    .panels { gap: 1rem; }
+    .panel { min-width: unset; padding: 1rem; }
+    .bottles { gap: 0.5rem; }
+    .bottle-icon { font-size: 1.8rem; }
+    .bottle-label { font-size: 0.65rem; }
+    .bottle-count { font-size: 0.9rem; }
+    .people-grid { grid-template-columns: repeat(4, 1fr); gap: 0.3rem; }
+    .person .icon { font-size: 1.2rem; }
+    .person { font-size: 0.7rem; }
+    .result-box { font-size: 0.95rem; }
+    .result-box .big { font-size: 1.5rem; }
+    .histogram-container { padding: 0.8rem; padding-right: 2.5rem; }
+    .histogram-bars { height: 180px; }
+    .bar-value { font-size: 0.55rem; }
+    .bar-label { font-size: 0.6rem; }
+    .stats { gap: 0.8rem; }
+    .stat-value { font-size: 1rem; }
+    .stat-label { font-size: 0.65rem; }
+    .expected-line { font-size: 0.7rem; }
+    .legend { gap: 0.8rem; font-size: 0.65rem; }
+    .significance-label { font-size: 0.6rem; }
+    .cdf-overlay text { font-size: 7px; }
+    .cdf-axis { font-size: 0.55rem; right: -28px; }
+    .histogram-controls { gap: 0.5rem; }
+    button { padding: 0.5rem 1rem; font-size: 0.9rem; }
+    input[type="number"] { width: 80px; font-size: 0.9rem; padding: 0.4rem 0.5rem; }
+  }
+
+  /* Tablet: iPad etc */
+  @media (min-width: 601px) and (max-width: 1024px) {
+    body { padding: 1.2rem; }
+    .panels { flex-direction: column; max-width: 700px; }
+    .panel { min-width: unset; }
+    .people-grid { grid-template-columns: repeat(8, 1fr); }
+  }
 </style>
 </head>
 <body>
 
 <h1>Wijntest Simulator</h1>
-<p class="subtitle">5 flessen &mdash; 4 goedkoop, 1 duur &mdash; 16 provers</p>
+<p class="subtitle">Dit is een random test waarbij 16 deelnemers uit 5 flessen wijn moeten kiezen. E&eacute;n van de 5 flessen is een hele goede en dure wijn en de andere 4 zijn hele simpele goedkope wijnen. In de test wordt weergegeven wat de uitkomst per test zou zijn als de deelnemers absoluut geen kennis van wijn hebben. Als 7 of meer deelnemers de dure wijn kiezen, dan is het statistisch gezien waarschijnlijk dat er &eacute;&eacute;n of meerdere wijnkenners onder de deelnemers zijn.</p>
 
 <div class="panels">
 
@@ -576,11 +627,13 @@ function drawSurvivalCurve(dist, n) {
     // Get bar-group positions for x coordinates
     const groups = barsEl.querySelectorAll('.bar-group');
     const points = [];
+    const pointData = [];
     groups.forEach((g, i) => {
       const gRect = g.getBoundingClientRect();
       const x = gRect.left - rect.left + gRect.width / 2;
       const y = paddingTop + (1 - survival[i]) * chartH;
       points.push(`${x},${y}`);
+      pointData.push({ x, y, val: survival[i] });
 
       // Add dot
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -588,6 +641,17 @@ function drawSurvivalCurve(dist, n) {
       circle.setAttribute('cy', y);
       circle.setAttribute('r', 3);
       svg.appendChild(circle);
+    });
+
+    // Add value labels at each point
+    pointData.forEach((pt, i) => {
+      const pctVal = pt.val * 100;
+      if (pctVal < 0.05 && pctVal > 0) return; // skip near-zero clutter
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', pt.x);
+      text.setAttribute('y', pt.y - 8);
+      text.textContent = pctVal >= 1 ? pctVal.toFixed(0) + '%' : pctVal.toFixed(1) + '%';
+      svg.appendChild(text);
     });
 
     // Draw polyline
