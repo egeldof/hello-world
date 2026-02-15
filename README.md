@@ -1,4 +1,4 @@
-# Ook anders
-tutorial
-this is a test on 31 okt 2019
-with extra new text
+# Read me
+
+this is new februari 2026
+with Claude Code
