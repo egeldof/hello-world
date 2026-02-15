@@ -147,7 +147,11 @@
     background: #0f3460;
     border-radius: 8px;
     padding: 1.2rem;
+    padding-right: 3rem;
     margin-top: 1rem;
+  }
+  .histogram-bars-wrapper {
+    position: relative;
   }
   .histogram-bars {
     display: flex;
@@ -156,6 +160,44 @@
     height: 220px;
     padding-top: 1rem;
     position: relative;
+  }
+  .cdf-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .cdf-overlay polyline {
+    fill: none;
+    stroke: #e8a0bf;
+    stroke-width: 2.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+  .cdf-overlay circle {
+    fill: #e8a0bf;
+  }
+  .cdf-axis-label {
+    font-size: 0.7rem;
+    color: #e8a0bf;
+    position: absolute;
+    right: 0;
+  }
+  .cdf-axis {
+    position: absolute;
+    right: -32px;
+    top: 1rem;
+    bottom: 0;
+    width: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-size: 0.65rem;
+    color: #e8a0bf;
+    text-align: right;
+    pointer-events: none;
   }
   .bar-group {
     flex: 1;
@@ -310,7 +352,11 @@
     </div>
 
     <div class="histogram-container" id="histContainer" style="display:none;">
-      <div class="histogram-bars" id="histBars"></div>
+      <div class="histogram-bars-wrapper">
+        <div class="histogram-bars" id="histBars"></div>
+        <svg class="cdf-overlay" id="cdfOverlay" preserveAspectRatio="none"></svg>
+        <div class="cdf-axis" id="cdfAxis"></div>
+      </div>
       <div class="stats" id="statsRow"></div>
       <div class="expected-line" id="expectedLine"></div>
     </div>
@@ -496,7 +542,67 @@ function runBatch() {
     <div class="legend-item"><div class="legend-swatch" style="background:#c4a35a;"></div> Toeval (niet significant)</div>
     <div class="legend-item"><div class="legend-swatch" style="background:#4ecca3;"></div> Significant (p &lt; 0.05)</div>
     <div class="legend-item"><div class="legend-swatch" style="background:#e06c75; width:2px; height:12px;"></div> Significantiegrens</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#e8a0bf; height:2px; border-radius:0;"></div> P(X &ge; k) — omgekeerde CDF</div>
   `;
+
+  // Draw reverse CDF (survival function) overlay
+  drawSurvivalCurve(dist, n);
+}
+
+function drawSurvivalCurve(dist, n) {
+  const svg = document.getElementById('cdfOverlay');
+  const barsEl = document.getElementById('histBars');
+  const axisEl = document.getElementById('cdfAxis');
+
+  // Wait for layout to settle
+  requestAnimationFrame(() => {
+    const rect = barsEl.getBoundingClientRect();
+    const svgW = rect.width;
+    const svgH = rect.height;
+    const paddingTop = parseFloat(getComputedStyle(barsEl).paddingTop) || 0;
+    const chartH = svgH - paddingTop;
+
+    svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
+    svg.innerHTML = '';
+
+    // Calculate survival function: P(X >= k)
+    const survival = [];
+    let cumRight = 0;
+    for (let k = NUM_PEOPLE; k >= 0; k--) {
+      cumRight += dist[k];
+      survival[k] = cumRight / n;
+    }
+
+    // Get bar-group positions for x coordinates
+    const groups = barsEl.querySelectorAll('.bar-group');
+    const points = [];
+    groups.forEach((g, i) => {
+      const gRect = g.getBoundingClientRect();
+      const x = gRect.left - rect.left + gRect.width / 2;
+      const y = paddingTop + (1 - survival[i]) * chartH;
+      points.push(`${x},${y}`);
+
+      // Add dot
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', x);
+      circle.setAttribute('cy', y);
+      circle.setAttribute('r', 3);
+      svg.appendChild(circle);
+    });
+
+    // Draw polyline
+    const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    polyline.setAttribute('points', points.join(' '));
+    svg.appendChild(polyline);
+
+    // Y-axis labels for CDF
+    axisEl.innerHTML = '';
+    [1, 0.5, 0].forEach(v => {
+      const label = document.createElement('div');
+      label.textContent = (v * 100).toFixed(0) + '%';
+      axisEl.appendChild(label);
+    });
+  });
 }
 
 // Calculate the smallest k where P(X >= k) < alpha using binomial CDF
@@ -519,6 +625,9 @@ function binomialPMF(n, k, p) {
   logP += k * Math.log(p) + (n - k) * Math.log(1 - p);
   return Math.exp(logP);
 }
+
+// Run batch test automatically on page load
+runBatch();
 </script>
 
 </body>
