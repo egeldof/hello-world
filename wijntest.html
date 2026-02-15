@@ -175,17 +175,17 @@
   }
   .cdf-overlay polyline {
     fill: none;
-    stroke: #e8a0bf;
+    stroke: #e06c75;
     stroke-width: 2.5;
     stroke-linejoin: round;
     stroke-linecap: round;
   }
   .cdf-overlay circle {
-    fill: #e8a0bf;
+    fill: #e06c75;
   }
   .cdf-axis-label {
     font-size: 0.7rem;
-    color: #e8a0bf;
+    color: #e06c75;
     position: absolute;
     right: 0;
   }
@@ -199,7 +199,7 @@
     flex-direction: column;
     justify-content: space-between;
     font-size: 0.65rem;
-    color: #e8a0bf;
+    color: #e06c75;
     text-align: right;
     pointer-events: none;
   }
@@ -220,8 +220,8 @@
     min-height: 0;
     position: relative;
   }
-  .bar.significant { background: #4ecca3; }
-  .bar.significant:hover { background: #6edcb3; }
+  .bar.significant { background: #e06c75; }
+  .bar.significant:hover { background: #e88a91; }
   .bar:hover { background: #d4b76a; }
   .bar-value {
     font-size: 0.7rem;
@@ -255,7 +255,7 @@
   }
   .expected-line {
     font-size: 0.8rem;
-    color: #4ecca3;
+    color: #c4a35a;
     text-align: center;
     margin-top: 0.8rem;
   }
@@ -296,7 +296,7 @@
     border-radius: 2px;
   }
   .cdf-overlay text {
-    fill: #e8a0bf;
+    fill: #e06c75;
     font-size: 9px;
     font-family: 'Segoe UI', system-ui, sans-serif;
     text-anchor: middle;
@@ -578,8 +578,8 @@ function runBatch() {
   const expected = NUM_PEOPLE / NUM_WINES;
   document.getElementById('expectedLine').innerHTML =
     `Verwachte waarde (bij puur toeval): ${expected.toFixed(1)} van de ${NUM_PEOPLE} kiezen de dure wijn (${(100 / NUM_WINES).toFixed(0)}% kans per persoon)<br>` +
-    `<span style="color:#e06c75;">Significantiegrens (p &lt; 0.05): ${sigThreshold}+ personen</span> — ` +
-    `<strong>${sigCount.toLocaleString()}</strong> van ${n.toLocaleString()} tests (${(sigCount / n * 100).toFixed(1)}%) was significant`;
+    `<span style="color:#e06c75;">Significantiegrens (p &lt; 0.05): ${sigThreshold}+ personen — ` +
+    `<strong>${sigCount.toLocaleString()}</strong> van ${n.toLocaleString()} tests (${(sigCount / n * 100).toFixed(1)}%) was significant</span>`;
 
   // Legend
   let legendEl = document.getElementById('histLegend');
@@ -591,9 +591,9 @@ function runBatch() {
   }
   legendEl.innerHTML = `
     <div class="legend-item"><div class="legend-swatch" style="background:#c4a35a;"></div> Toeval (niet significant)</div>
-    <div class="legend-item"><div class="legend-swatch" style="background:#4ecca3;"></div> Significant (p &lt; 0.05)</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#e06c75;"></div> Significant (p &lt; 0.05)</div>
     <div class="legend-item"><div class="legend-swatch" style="background:#e06c75; width:2px; height:12px;"></div> Significantiegrens</div>
-    <div class="legend-item"><div class="legend-swatch" style="background:#e8a0bf; height:2px; border-radius:0;"></div> P(X &ge; k) — omgekeerde CDF</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#e06c75; height:2px; border-radius:0;"></div> P(X &ge; k) — omgekeerde CDF</div>
   `;
 
   // Draw reverse CDF (survival function) overlay
