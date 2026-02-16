@@ -784,8 +784,8 @@ function drawSurvivalCurve(dist, n) {
       const pctVal = pt.val * 100;
       if (pctVal < 0.05 || pctVal > 99.95) return;
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      text.setAttribute('x', pt.x);
-      text.setAttribute('y', pt.y + 16);
+      text.setAttribute('x', pt.x + 12);
+      text.setAttribute('y', pt.y + 4);
       text.classList.add('cdf-green');
       text.textContent = pctVal >= 1 ? pctVal.toFixed(0) + '%' : pctVal.toFixed(1) + '%';
       svg.appendChild(text);
