@@ -343,6 +343,87 @@
     input[type="number"] { width: 80px; font-size: 0.9rem; padding: 0.4rem 0.5rem; }
   }
 
+  /* Formula section */
+  .formula-section {
+    max-width: 700px;
+    margin: 3rem auto 0;
+    padding: 1.5rem;
+    background: rgba(255,255,255,0.04);
+    border-radius: 12px;
+    border: 1px solid rgba(196,163,90,0.2);
+  }
+  .formula-section h2 {
+    text-align: center;
+    color: #c4a35a;
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+  }
+  .formula-section h3 {
+    color: #c4a35a;
+    font-size: 1.1rem;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .formula-intro {
+    color: #e0e0e0;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    margin-bottom: 0.8rem;
+  }
+  .formula-legend {
+    color: #e0e0e0;
+    font-size: 0.85rem;
+    line-height: 1.8;
+    margin: 0 0 1rem 1.2rem;
+  }
+  .formula-box {
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    padding: 0.8rem 1.2rem;
+    margin: 0.8rem 0;
+    text-align: center;
+  }
+  .formula {
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+  }
+  .table-wrapper {
+    overflow-x: auto;
+    margin-top: 0.8rem;
+  }
+  .prob-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+  }
+  .prob-table th {
+    background: rgba(196,163,90,0.2);
+    color: #c4a35a;
+    font-weight: 900;
+    padding: 0.5rem 0.8rem;
+    text-align: center;
+    border-bottom: 2px solid rgba(196,163,90,0.3);
+  }
+  .prob-table td {
+    padding: 0.4rem 0.8rem;
+    text-align: center;
+    color: #e0e0e0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .prob-table tr:hover td {
+    background: rgba(255,255,255,0.05);
+  }
+  .prob-table .sig-row td {
+    color: #4cdf7a;
+    font-weight: 700;
+  }
+  .sig-text {
+    color: #4cdf7a;
+    font-weight: 700;
+  }
+
   /* Tablet: iPad etc */
   @media (min-width: 601px) and (max-width: 1024px) {
     body { padding: 1.2rem; }
@@ -702,7 +783,65 @@ function binomialPMF(n, k, p) {
 
 // Run batch test automatically on page load
 runBatch();
+
+// Generate probability table
+function generateProbTable() {
+  const n = 16, p = 1/5;
+  const tbody = document.getElementById('prob-tbody');
+  let cumGe = 1; // P(X >= 0) = 1
+  for (let k = 0; k <= n; k++) {
+    const pmf = binomialPMF(n, k, p);
+    const row = document.createElement('tr');
+    const isSignificant = k >= 7;
+    if (isSignificant) row.classList.add('sig-row');
+    row.innerHTML =
+      '<td>' + k + '</td>' +
+      '<td>' + (pmf * 100).toFixed(4) + '%</td>' +
+      '<td>' + (cumGe * 100).toFixed(4) + '%</td>';
+    tbody.appendChild(row);
+    cumGe -= pmf;
+  }
+}
+generateProbTable();
 </script>
+
+<div class="formula-section">
+  <h2>Kansberekening</h2>
+  <p class="formula-intro">De kans dat exact <em>k</em> van de 16 deelnemers de juiste (dure) wijn kiezen, puur op basis van toeval (1 uit 5), volgt de <strong>binomiale verdeling</strong>:</p>
+
+  <div class="formula-box">
+    <p class="formula">P(X = k) = C(16, k) &times; (1/5)<sup>k</sup> &times; (4/5)<sup>16 &minus; k</sup></p>
+  </div>
+
+  <p class="formula-intro">Waarbij:</p>
+  <ul class="formula-legend">
+    <li><strong>n = 16</strong> &mdash; het aantal deelnemers</li>
+    <li><strong>p = 1/5 = 0,20</strong> &mdash; de kans om random de juiste wijn te kiezen</li>
+    <li><strong>k</strong> &mdash; het aantal deelnemers dat de dure wijn kiest (0 t/m 16)</li>
+    <li><strong>C(16, k)</strong> &mdash; het aantal combinaties ("16 boven k")</li>
+  </ul>
+
+  <p class="formula-intro">De <strong>verwachte waarde</strong> (gemiddelde) is:</p>
+  <div class="formula-box">
+    <p class="formula">E(X) = n &times; p = 16 &times; 1/5 = <strong>3,20</strong></p>
+  </div>
+
+  <h3>Kanstabel</h3>
+  <p class="formula-intro">Hieronder de kans per uitkomst. <span class="sig-text">Groen gemarkeerde rijen</span> (k &ge; 7) zijn statistisch significant (p &lt; 0,05): de kans dat dit puur toeval is, is kleiner dan 5%.</p>
+
+  <div class="table-wrapper">
+    <table class="prob-table">
+      <thead>
+        <tr>
+          <th>k (aantal juist)</th>
+          <th>P(X = k)</th>
+          <th>P(X &ge; k)</th>
+        </tr>
+      </thead>
+      <tbody id="prob-tbody"></tbody>
+    </table>
+  </div>
+</div>
 
 </body>
 </html>
