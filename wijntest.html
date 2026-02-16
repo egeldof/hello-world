@@ -281,9 +281,18 @@
   }
   .significance-label {
     position: absolute;
-    top: -2px;
+    top: -28px;
     font-size: 0.7rem;
     color: #dd3333;
+    white-space: nowrap;
+    font-weight: 600;
+    transform: translateX(-50%);
+  }
+  .significance-label-green {
+    position: absolute;
+    top: -42px;
+    font-size: 0.7rem;
+    color: #4cdf7a;
     white-space: nowrap;
     font-weight: 600;
     transform: translateX(-50%);
@@ -655,9 +664,14 @@ function runBatch() {
       const lineLabel = document.createElement('div');
       lineLabel.className = 'significance-label';
       lineLabel.style.left = '-2px';
-      lineLabel.textContent = 'p < 0.05';
+      lineLabel.textContent = 'p < 5%';
+      const greenLabel = document.createElement('div');
+      greenLabel.className = 'significance-label-green';
+      greenLabel.style.left = '-2px';
+      greenLabel.textContent = '1-p > 95%';
       group.appendChild(line);
       group.appendChild(lineLabel);
+      group.appendChild(greenLabel);
     }
 
     barsEl.appendChild(group);
