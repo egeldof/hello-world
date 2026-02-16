@@ -181,8 +181,14 @@
     stroke-linejoin: round;
     stroke-linecap: round;
   }
+  .cdf-overlay polyline.cdf-green {
+    stroke: #4cdf7a;
+  }
   .cdf-overlay circle {
     fill: #dd3333;
+  }
+  .cdf-overlay circle.cdf-green {
+    fill: #4cdf7a;
   }
   .cdf-axis-label {
     font-size: 0.7rem;
@@ -307,6 +313,9 @@
     font-size: 9px;
     font-weight: 700;
     font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+  .cdf-overlay text.cdf-green {
+    fill: #4cdf7a;
     text-anchor: middle;
   }
 
@@ -684,7 +693,8 @@ function runBatch() {
     <div class="legend-item"><div class="legend-swatch" style="background:#c4a35a;"></div> Toeval (niet significant)</div>
     <div class="legend-item"><div class="legend-swatch" style="background:#dd3333;"></div> Significant (p &lt; 0.05)</div>
     <div class="legend-item"><div class="legend-swatch" style="background:#dd3333; width:2px; height:12px;"></div> Significantiegrens</div>
-    <div class="legend-item"><div class="legend-swatch" style="background:#dd3333; height:2px; border-radius:0;"></div> P(X &ge; k) — omgekeerde CDF</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#dd3333; height:2px; border-radius:0;"></div> P(X &ge; k) — kans op toeval</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#4cdf7a; height:2px; border-radius:0;"></div> 1 &minus; P(X &ge; k) — kans op wijnkennis</div>
   `;
 
   // Draw reverse CDF (survival function) overlay
@@ -745,10 +755,47 @@ function drawSurvivalCurve(dist, n) {
       svg.appendChild(text);
     });
 
-    // Draw polyline
+    // Draw red polyline (survival)
     const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
     polyline.setAttribute('points', points.join(' '));
     svg.appendChild(polyline);
+
+    // Calculate and draw green CDF: P(wine knowledge) = 1 - P(X >= k)
+    const greenPoints = [];
+    const greenData = [];
+    groups.forEach((g, i) => {
+      const gRect = g.getBoundingClientRect();
+      const x = gRect.left - rect.left + gRect.width / 2;
+      const wineKnowledge = 1 - survival[i];
+      const y = paddingTop + (1 - wineKnowledge) * chartH;
+      greenPoints.push(`${x},${y}`);
+      greenData.push({ x, y, val: wineKnowledge });
+
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', x);
+      circle.setAttribute('cy', y);
+      circle.setAttribute('r', 3);
+      circle.classList.add('cdf-green');
+      svg.appendChild(circle);
+    });
+
+    // Green value labels
+    greenData.forEach((pt) => {
+      const pctVal = pt.val * 100;
+      if (pctVal < 0.05 || pctVal > 99.95) return;
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', pt.x);
+      text.setAttribute('y', pt.y + 16);
+      text.classList.add('cdf-green');
+      text.textContent = pctVal >= 1 ? pctVal.toFixed(0) + '%' : pctVal.toFixed(1) + '%';
+      svg.appendChild(text);
+    });
+
+    // Green polyline
+    const greenPolyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    greenPolyline.setAttribute('points', greenPoints.join(' '));
+    greenPolyline.classList.add('cdf-green');
+    svg.appendChild(greenPolyline);
 
     // Y-axis labels for CDF
     axisEl.innerHTML = '';
@@ -794,10 +841,12 @@ function generateProbTable() {
     const row = document.createElement('tr');
     const isSignificant = k >= 7;
     if (isSignificant) row.classList.add('sig-row');
+    const wineKnowledge = (1 - cumGe) * 100;
     row.innerHTML =
       '<td>' + k + '</td>' +
       '<td>' + (pmf * 100).toFixed(4) + '%</td>' +
-      '<td>' + (cumGe * 100).toFixed(4) + '%</td>';
+      '<td>' + (cumGe * 100).toFixed(4) + '%</td>' +
+      '<td>' + wineKnowledge.toFixed(4) + '%</td>';
     tbody.appendChild(row);
     cumGe -= pmf;
   }
@@ -834,7 +883,8 @@ function generateProbTable() {
         <tr>
           <th>k (aantal juist)</th>
           <th>P(X = k)</th>
-          <th>P(X &ge; k)</th>
+          <th>P(X &ge; k) toeval</th>
+          <th>Kans op wijnkennis</th>
         </tr>
       </thead>
       <tbody id="prob-tbody"></tbody>
