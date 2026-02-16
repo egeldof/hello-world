@@ -515,7 +515,11 @@
         <svg class="cdf-overlay" id="cdfOverlay" preserveAspectRatio="none"></svg>
         <div class="cdf-axis" id="cdfAxis"></div>
       </div>
-      <div style="text-align:center; font-size:0.7rem; color:#c4a35a; font-weight:600; margin-top:0.3rem;">x-as: totaal aantal personen met de dure wijn &nbsp;&nbsp;&nbsp; y-as gele histogram: aantal in de testserie</div>
+      <div style="text-align:center; font-size:0.7rem; font-weight:600; margin-top:0.3rem;">
+        <span style="color:#fff;">x-as: totaal aantal personen met keuze dure wijn</span><br>
+        <span style="color:#c4a35a;">y-as: gele histograms: aantallen in de testserie</span>
+      </div>
+      <div id="histLegendSlot"></div>
       <div class="stats" id="statsRow"></div>
       <div class="expected-line" id="expectedLine"></div>
     </div>
@@ -705,7 +709,7 @@ function runBatch() {
     legendEl = document.createElement('div');
     legendEl.id = 'histLegend';
     legendEl.className = 'legend';
-    container.appendChild(legendEl);
+    document.getElementById('histLegendSlot').appendChild(legendEl);
   }
   legendEl.innerHTML = `
     <div class="legend-item"><div class="legend-swatch" style="background:#c4a35a;"></div> Toeval (niet significant)</div>
