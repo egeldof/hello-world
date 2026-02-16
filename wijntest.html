@@ -676,10 +676,13 @@ function runBatch() {
   for (let i = sigThreshold; i <= NUM_PEOPLE; i++) sigCount += dist[i];
 
   const expected = NUM_PEOPLE / NUM_WINES;
+  const sigPct = (sigCount / n * 100).toFixed(1);
+  const wineKnowledgePct = (100 - sigPct).toFixed(1);
   document.getElementById('expectedLine').innerHTML =
     `Verwachte waarde (bij puur toeval): ${expected.toFixed(1)} van de ${NUM_PEOPLE} kiezen de dure wijn (${(100 / NUM_WINES).toFixed(0)}% kans per persoon)<br>` +
-    `<span style="color:#dd3333;">Significantiegrens (p &lt; 0.05): ${sigThreshold}+ personen — ` +
-    `<strong>${sigCount.toLocaleString()}</strong> van ${n.toLocaleString()} tests (${(sigCount / n * 100).toFixed(1)}%) was significant</span>`;
+    `<span style="color:#dd3333;">Significantiegrens (p &lt; 0.05): ${sigThreshold}+ personen &mdash; ` +
+    `<strong>${sigCount.toLocaleString()}</strong> van ${n.toLocaleString()} tests (${sigPct}%) was statistisch significant.</span><br>` +
+    `<span style="color:#4cdf7a;">Oftewel ${wineKnowledgePct}% kans op wijnkennis bij ${sigThreshold}+ personen (binnen betrouwbaarheidsinterval 95&ndash;100%).</span>`;
 
   // Legend
   let legendEl = document.getElementById('histLegend');
